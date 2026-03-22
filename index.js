@@ -1,49 +1,73 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
-const session = require('express-session');
-const connectDB = require('./config/db');
-const Music = require('./models/Music');
-const app = express()
-const port = process.env.PORT || 3000
+const session = require("express-session");
+const connectDB = require("./config/db");
+const Music = require("./models/Music");
+const app = express();
+const port = process.env.PORT || 3000;
 
 require("./config/passport");
 
-connectDB()
+connectDB();
 
-app.use(session({
+app.use(
+  session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-}))
-
+  }),
+);
 
 app.use("/auth", require("./routes/auth"));
 
-
 function isAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.redirect('/auth/google');
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/auth/google");
 }
 
 app.get("/dashboard", isAuthenticated, (req, res) => {
-    res.send(`Welcome ${req.user.displayName}!`);
+  res.send(`Welcome ${req.user.displayName}!`);
 });
 
-app.get("/",(req,res)=>{
-    res.send("Hello World")
-})
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
-app.get("/api/musics",async(req,res)=>{
+app.get("/api/musics", async (req, res) => {
+  try {
+    const musics = await Music.find();
+    res.status(202).json(musics);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/search", async (req, res) => {
+  const query = req.query.q;
+
+  if (!query) {
     try {
-        const musics = await Music.find();
-        res.status(202).json(musics);
+      const musics = await Music.find();
+      res.status(202).json(musics);
+      return;
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
-})
+  }
 
-app.listen(port,()=>{
-    console.log("Server is running on port 3001")
-})
+  try {
+    const music = await Music.findOne({ name: { $regex: query, $options: "i" } });
+    if (!music) {
+      return res.status(404).json({ error: "Music not found" });
+    }
+    res.status(200).json(music);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.listen(port, () => {
+  console.log("Server is running on port 3001");
+});
