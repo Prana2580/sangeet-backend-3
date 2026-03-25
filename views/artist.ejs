@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Artist Storage Devups</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <style>
+      * {
+        font-family: "Google Sans", sans-serif;
+        font-optical-sizing: auto;
+        /* font-weight: <weight>; */
+        font-style: normal;
+        font-variation-settings: "GRAD" 0;
+      }
+    </style>
+  </head>
+  <body class="bg-dark text-white">
+    <h1 class="text-white px-5 pt-5">Artist Data &rarr;</h1>
+    <form id="form" class="container">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" aria-describedby="" />
+      </div>
+      <div class="mb-3">
+        <label for="id" class="form-label">Artist Id</label>
+        <input type="text" disabled class="form-control" id="id" />
+      </div>
+      <div class="mb-3">
+        <label for="image" class="form-label">Image</label>
+        <input type="url" class="form-control" id="image" aria-describedby="" />
+      </div>
+      <div id="form-check-field" class="mb-3 d-flex flex-wrap">
+        <label for="genre" class="form-label">Genre</label>
+      </div>
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="exampleCheck1" />
+        <label class="form-check-label" for="exampleCheck1">Check me out</label>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <!-- toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        id="liveToast"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="toast-header">
+          <img src="..." class="rounded me-2" alt="..." />
+          <strong id="title" class="me-auto">Bootstrap</strong>
+          <!-- <small>11 mins ago</small> -->
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div id="body" class="toast-body">
+          Hello, world! This is a toast message.
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const toastLiveExample = document.getElementById("liveToast");
+      const toastBootstrap =
+        bootstrap.Toast.getOrCreateInstance(toastLiveExample);
+
+      let genresSelected;
+      let form = document.getElementById("form");
+      const formFieldCheck = document.getElementById("form-check-field");
+      const uuid = crypto.randomUUID();
+      document.getElementById("id").value = uuid;
+
+      async function fetchGenres() {
+        const res = await fetch("/api/genres");
+        const data = await res.json();
+        manipulateChecks(data);
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = {
+          name: document.getElementById("name").value,
+          id: document.getElementById("id").value,
+          image: document.getElementById("image").value,
+          genres: genresSelected,
+        };
+
+        fetch("/api/add-new-artist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            displayNoti(true);
+          })
+          .catch((err) => {
+            displayNoti(false);
+            console.log(err);
+          });
+      });
+
+      function displayNoti(isResponseRight) {
+        if (isResponseRight) {
+          document.getElementById("title").textContent = "Success";
+          document.getElementById("body").textContent =
+            "Data submitted successfully";
+        } else {
+          document.getElementById("title").textContent = "Error";
+          document.getElementById("body").textContent = "Data not submitted";
+        }
+        toastBootstrap.show();
+      }
+
+      function manipulateChecks(items) {
+        formFieldCheck.innerHTML = "";
+
+        items.forEach((element) => {
+          formFieldCheck.innerHTML += `
+              <div  class="form-check mx-5">
+            <input
+            onchange="setThisGenre('${element}')"
+            class="form-check-input"
+            type="checkbox"
+            value="${element}"
+            id="checkDefault"
+          />
+          <label class="form-check-label" for="checkDefault">
+            ${element}
+          </label>
+
+           </div>
+            `;
+        });
+      }
+
+      function setThisGenre(genre) {
+        if (!genresSelected) {
+          genresSelected = [genre];
+        } else {
+          const index = genresSelected.indexOf(genre);
+          if (index !== -1) {
+            genresSelected.splice(index, 1); // remove if already selected
+          } else {
+            genresSelected.push(genre); // add if not selected
+          }
+        }
+      }
+
+      fetchGenres();
+
+      //   const checkbox = document.querySelector('input[type="checkbox"]');
+
+      //   checkbox.addEventListener("change", (e) => {
+      //     console.log(e.target.value); // true or false
+      //   });
+    </script>
+  </body>
+</html>
