@@ -51,25 +51,18 @@ app.get("/api/musics", async (req, res) => {
 app.get("/api/artists", async (req, res) => {
   const q = req.query.q;
   
+
   try {
-    const artist = await Artist.find();
-    res.status(202).json(artist);
+    const query = q ? { name: { $regex: q, $options: "i" } } : {};
+    const artists = await Artist.find(query);
+
+    if (artists.length === 0) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+
+    res.status(200).json(artists);
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-
-  if (q) {
-    try {
-      const artist = await Artist.findOne({
-        name: { $regex: q, $options: "i" },
-      });
-      if (!artist) {
-        return res.status(404).json({ error: "Artist not found" });
-      }
-      res.status(200).json(artist);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
   }
 });
 
@@ -90,6 +83,10 @@ app.get("/api/artist/:id",async(req,res)=>{
 app.get("/admin/artist", (req, res) => {
   res.render("artist");
 });
+
+app.get("/admin/music-save",(req,res)=>{
+  res.render("music")
+})
 
 app.get("/api/genres", (req, res) => {
   res.send([

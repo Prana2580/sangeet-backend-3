@@ -6,13 +6,14 @@ const musicSchema = new mongoose.Schema({
     required: true,
   },
   artist: {
-    type: String,
+    type: Array,
     required: true,
   },
 
   duration: {
     type: Number,
   },
+  
   image: {
     type: String,
   },
@@ -24,6 +25,10 @@ const musicSchema = new mongoose.Schema({
   played_time: {
     type: Number,
   },
+
+  albums:{
+    type:Object,
+  }
 });
 
 module.exports = mongoose.model("Musics", musicSchema);
