@@ -11,11 +11,11 @@ const artistSchema = new mongoose.Schema({
 
   id: {
     type: String,
-    reqiured: true,
+   
   },
   genres: {
     type: Array,
   },
-});
+},{_id:false});
 
 module.exports = mongoose.model("Artists", artistSchema);

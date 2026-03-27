@@ -3,6 +3,8 @@ const express = require("express");
 const session = require("express-session");
 const connectDB = require("./config/db");
 const Music = require("./models/Music");
+const Albums = require("./models/Album");
+
 const Artist = require("./models/Artist");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -40,6 +42,22 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/musics", async (req, res) => {
+  const q = req.query.query;
+
+  if (q) {
+    try {
+      const music = await Music.findOne({
+        name: { $regex: q, $options: "i" },
+      });
+      if (!music) {
+        return res.status(404).json({ error: "Music not found" });
+      }
+      res.status(200).json([music]);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   try {
     const musics = await Music.find();
     res.status(202).json(musics);
@@ -50,7 +68,6 @@ app.get("/api/musics", async (req, res) => {
 
 app.get("/api/artists", async (req, res) => {
   const q = req.query.q;
-  
 
   try {
     const query = q ? { name: { $regex: q, $options: "i" } } : {};
@@ -66,27 +83,50 @@ app.get("/api/artists", async (req, res) => {
   }
 });
 
-app.get("/api/artist/:id",async(req,res)=>{
-  const id = req.params.id
+
+app.get("/api/albums", async (req, res) => {
+  const q = req.query.q;
 
   try {
-      const artistById = await Artist.findById(id);
-      if (!artistById) {
-        return res.status(404).json({ error: "Artist not found" });
-      }
-      res.status(200).json(artistById);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    const query = q ? { name: { $regex: q, $options: "i" } } : {};
+    const albums = await Albums.find(query);
+
+    if (albums.length === 0) {
+      return res.status(404).json({ error: "Album not found" });
     }
-})
+
+    res.status(200).json(albums);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.get("/api/artist/:id", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const artistById = await Artist.find({ id });
+    if (!artistById) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+    res.status(200).json(artistById[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.get("/admin/artist", (req, res) => {
   res.render("artist");
 });
 
-app.get("/admin/music-save",(req,res)=>{
-  res.render("music")
-})
+app.get("/admin/album-save", (req, res) => {
+  res.render("album");
+});
+
+app.get("/admin/music-save", (req, res) => {
+  res.render("music");
+});
 
 app.get("/api/genres", (req, res) => {
   res.send([
@@ -141,6 +181,36 @@ app.post("/api/add-new-artist", async (req, res) => {
     const artist = new Artist({ name, id, image, genres });
     await artist.save();
     res.status(201).json(artist);
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+app.post("/api/album-save", async (req, res) => {
+  const {
+    name,
+    releasedyear,
+    total_running_time,
+    image,
+    // These will now automatically grab the IDs from the hidden inputs we created!
+    artist_ids,
+    song_ids,
+    copyright_claims,
+  } = req.body;
+
+  try {
+    const album = new Albums({
+      name,
+      released: releasedyear,
+      duration: total_running_time,
+      image,
+      // These will now automatically grab the IDs from the hidden inputs we created!
+      artists: artist_ids,
+      songs: song_ids,
+      copyright_claims,
+    });
+    await album.save();
+    res.status(201).json(album);
   } catch (error) {
     res.json(error);
   }

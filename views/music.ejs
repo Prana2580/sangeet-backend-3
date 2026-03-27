@@ -24,6 +24,26 @@
         font-style: normal;
         font-variation-settings: "GRAD" 0;
       }
+
+      #drop-down-artist {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .drop-down-box {
+        width: 100%;
+        height: 40px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0 20px;
+        flex-direction: column;
+        background-color: white;
+        margin-top: 3px;
+        color: black;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body class="bg-dark text-white">
@@ -121,36 +141,42 @@
 
         data.forEach((element) => {
           document.getElementById("drop-down-artist").innerHTML += `
-<div onclick="selectThisArtist('${element.id}')">${element.name}</div>
+<div class="drop-down-box" onclick="selectThisArtist('${element.id}')">
+ ${element.name}
+  </div>
 `;
         });
       }
 
-      //   form.addEventListener("submit", (e) => {
-      //     e.preventDefault();
-      //     const formData = {
-      //       name: document.getElementById("name").value,
-      //       id: document.getElementById("id").value,
-      //       image: document.getElementById("image").value,
-      //       genres: genresSelected,
-      //     };
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById("name").value,
+            id: document.getElementById("id").value,
+            image: document.getElementById("image").value,
+            played_time: 0,
+            artists:artistsSelected,
 
-      //     fetch("/api/add-new-artist", {
-      //       method: "POST",
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       },
-      //       body: JSON.stringify(formData),
-      //     })
-      //       .then((res) => res.json())
-      //       .then((data) => {
-      //         displayNoti(true);
-      //       })
-      //       .catch((err) => {
-      //         displayNoti(false);
-      //         console.log(err);
-      //       });
-      //   });
+          };
+
+          console.log(formData)
+
+          // fetch("/api/add-new-artist", {
+          //   method: "POST",
+          //   headers: {
+          //     "Content-Type": "application/json",
+          //   },
+          //   body: JSON.stringify(formData),
+          // })
+          //   .then((res) => res.json())
+          //   .then((data) => {
+          //     displayNoti(true);
+          //   })
+          //   .catch((err) => {
+          //     displayNoti(false);
+          //     console.log(err);
+          //   });
+        });
 
       function displayNoti(isResponseRight) {
         if (isResponseRight) {

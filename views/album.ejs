@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Album Form with API Search</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <style>
+      /* Custom styles for the search dropdowns */
+      .search-results-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+        border-top: none;
+      }
+      .search-container {
+        position: relative;
+      }
+      .selected-pill {
+        display: inline-flex;
+        align-items: center;
+        background-color: #0d6efd;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 50px;
+        margin: 4px 4px 4px 0;
+        font-size: 0.9rem;
+      }
+      .selected-pill button {
+        background: none;
+        border: none;
+        color: white;
+        margin-left: 8px;
+        padding: 0;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body class="bg-black text-light py-5">
+    <div class="container">
+      <div
+        class="card shadow-lg bg-dark border-secondary mx-auto"
+        style="max-width: 800px"
+      >
+        <div class="card-header bg-primary text-white p-3">
+          <h4 class="mb-0 fw-bold">
+            <i class="bi bi-disc"></i> Add Album Data
+          </h4>
+        </div>
+
+        <div class="card-body p-4">
+          <form id="albumDataForm">
+            <div class="row mb-4">
+              <div class="col-md-12 mb-3">
+                <label for="albumName" class="form-label fw-bold"
+                  >Album Name</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="albumName"
+                  name="name"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="releasedYear" class="form-label fw-bold"
+                  >Released Year</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="releasedYear"
+                  name="releasedyear"
+                  required
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="totalTime" class="form-label fw-bold"
+                  >Total Running Time</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="totalTime"
+                  name="total_running_time"
+                  placeholder="e.g., 45:30"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Album Image</label>
+              <div class="search-container">
+                <input
+                  type="url"
+                  class="form-control"
+                  name="album-image"
+                  id="album-image"
+                  placeholder=""
+                  autocomplete="off"
+                />
+
+               
+              </div>
+
+              <div id="selectedArtistsContainer" class="mt-2"></div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Copyright's</label>
+              <div class="search-container">
+                <input
+                  type="text"
+                  class="form-control"
+                  name="copyright-claims"
+                  id="copyright-claims"
+                  placeholder=""
+                  autocomplete="off"
+                />
+
+                <div
+                  class="list-group search-results-dropdown shadow"
+                  id="artistSearchResults"
+                ></div>
+              </div>
+
+              <div id="selectedArtistsContainer" class="mt-2"></div>
+            </div>
+
+            <hr class="border-secondary my-4" />
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Search & Select Artists</label>
+              <div class="search-container">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="artistSearchInput"
+                  placeholder="Type to search artists (e.g., 'Beatles', 'Drake')..."
+                  autocomplete="off"
+                />
+
+                <div
+                  class="list-group search-results-dropdown shadow"
+                  id="artistSearchResults"
+                ></div>
+              </div>
+
+              <div id="selectedArtistsContainer" class="mt-2"></div>
+            </div>
+
+            <hr class="border-secondary my-4" />
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Search & Select Songs</label>
+              <div class="search-container">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="songSearchInput"
+                  placeholder="Type to search songs (e.g., 'Hey Jude', 'Gods Plan')..."
+                  autocomplete="off"
+                />
+
+                <div
+                  class="list-group search-results-dropdown shadow"
+                  id="songSearchResults"
+                ></div>
+              </div>
+
+              <div id="selectedSongsContainer" class="mt-2"></div>
+            </div>
+
+            <div class="d-grid mt-5">
+              <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                Submit Album Data
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // 1. MOCK APIs (Replace these with your actual fetch endpoints)
+      // ==========================================
+
+      // Simulated API fetch function
+      async function fetchFromAPI(query, type) {
+        const q = query;
+        if (type === "artists") {
+          const res = await fetch(`/api/artists?q=${q}`);
+          const data = await res.json();
+          return data;
+        }
+
+        if (type === "songs") {
+          const res = await fetch(`/api/musics?query=${q}`);
+          const data = await res.json();
+          return data;
+        }
+      }
+
+      // ==========================================
+      // 2. SEARCH & UI LOGIC
+      // ==========================================
+
+      function setupAutocomplete(
+        inputId,
+        resultsId,
+        containerId,
+        type,
+        inputName,
+      ) {
+        const inputElement = document.getElementById(inputId);
+        const resultsElement = document.getElementById(resultsId);
+        const containerElement = document.getElementById(containerId);
+
+        // Listen for typing
+        inputElement.addEventListener("input", async function () {
+          const query = this.value.trim();
+
+          if (query.length < 2) {
+            resultsElement.style.display = "none";
+            return;
+          }
+
+          // Call the API
+          const results = await fetchFromAPI(query, type);
+
+          // Clear previous results
+          resultsElement.innerHTML = "";
+
+          if (results.length > 0) {
+            resultsElement.style.display = "block";
+            results.forEach((item) => {
+              const a = document.createElement("a");
+              a.href = "#";
+              a.className =
+                "list-group-item list-group-item-action bg-dark text-light border-secondary";
+              a.textContent = item.name;
+
+              // When a user clicks a search result
+              a.onclick = function (e) {
+                e.preventDefault();
+                addSelectedTag(
+                  item.id ? item.id : item._id,
+                  item.name,
+                  containerElement,
+                  inputName,
+                );
+                inputElement.value = ""; // Clear search box
+                resultsElement.style.display = "none"; // Hide dropdown
+              };
+              resultsElement.appendChild(a);
+            });
+          } else {
+            resultsElement.style.display = "block";
+            resultsElement.innerHTML =
+              '<div class="list-group-item bg-dark text-muted border-secondary">No results found</div>';
+          }
+        });
+
+        // Hide dropdown if clicked outside
+        document.addEventListener("click", function (e) {
+          if (e.target !== inputElement && e.target !== resultsElement) {
+            resultsElement.style.display = "none";
+          }
+        });
+      }
+
+      // Function to create the visual "Pill" and the Hidden Input for the ID
+      function addSelectedTag(id, name, container, inputName) {
+        // Prevent duplicates
+        if (container.querySelector(`input[value="${id}"]`)) {
+          alert("This item is already selected!");
+          return;
+        }
+
+        // Create visual pill
+        const pill = document.createElement("div");
+        pill.className = "selected-pill shadow-sm";
+        pill.innerHTML = `
+                ${name}
+                <button type="button" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+                <input type="hidden" name="${inputName}[]" value="${id}">
+            `;
+
+        container.appendChild(pill);
+      }
+
+      // Initialize the autocompletes
+      setupAutocomplete(
+        "artistSearchInput",
+        "artistSearchResults",
+        "selectedArtistsContainer",
+        "artists",
+        "artists",
+      );
+      setupAutocomplete(
+        "songSearchInput",
+        "songSearchResults",
+        "selectedSongsContainer",
+        "songs",
+        "songs",
+      );
+
+      // ==========================================
+      // 3. FORM SUBMISSION (To see the JSON)
+      // ==========================================
+      document
+        .getElementById("albumDataForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const albumData = {
+            name: formData.get("name"),
+            releasedyear: parseInt(formData.get("releasedyear")),
+            total_running_time: formData.get("total_running_time"),
+            image: formData.get("album-image"),
+            // These will now automatically grab the IDs from the hidden inputs we created!
+            artist_ids: formData.getAll("artists[]"),
+            song_ids: formData.getAll("songs[]"),
+            copyright_claims: formData.getAll("copyright-claims"),
+          };
+
+        //   console.log(albumData)
+
+          try {
+            const res = await fetch("/api/album-save", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(albumData),
+            });
+            const data = await res.json();
+            console.log(data);
+          } catch (error) {
+            alert(error);
+          }
+        });
+    </script>
+  </body>
+</html>
