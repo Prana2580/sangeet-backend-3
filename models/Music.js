@@ -1,34 +1,27 @@
 const mongoose = require("mongoose");
 
 const musicSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  artist: {
-    type: Array,
-    required: true,
-  },
+  title: { type: String, required: true },
 
-  duration: {
-    type: Number,
-  },
-  
-  image: {
-    type: String,
-  },
+  artistIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Artist" }],
+  albumId: { type: mongoose.Schema.Types.ObjectId, ref: "Album" },
 
-  musicUrl: {
-    type: String,
-  },
+  duration: Number, // in seconds
+  previewUrl: String, // Spotify-like preview
+  audioUrl: String, // your stored file (Appwrite/S3)
 
-  played_time: {
-    type: Number,
-  },
+  coverImage: String,
 
-  albums:{
-    type:Object,
-  }
-});
+  genre: [String],
+
+  releaseDate: Date,
+
+  playCount: { type: Number, default: 0 },
+
+  isExplicit: Boolean,
+
+  spotifyId: String, // for syncing with Spotify API
+
+}, { timestamps: true });
 
 module.exports = mongoose.model("Musics", musicSchema);

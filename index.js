@@ -6,6 +6,7 @@ const Music = require("./models/Music");
 const Albums = require("./models/Album");
 
 const Artist = require("./models/Artist");
+const Album = require("./models/Album");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -37,84 +38,13 @@ app.get("/dashboard", isAuthenticated, (req, res) => {
   res.send(`Welcome ${req.user.displayName}!`);
 });
 
+// Basic route to test if the server is running
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.get("/api/musics", async (req, res) => {
-  const q = req.query.query;
-
-  if (q) {
-    try {
-      const music = await Music.findOne({
-        name: { $regex: q, $options: "i" },
-      });
-      if (!music) {
-        return res.status(404).json({ error: "Music not found" });
-      }
-      res.status(200).json([music]);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  try {
-    const musics = await Music.find();
-    res.status(202).json(musics);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.get("/api/artists", async (req, res) => {
-  const q = req.query.q;
-
-  try {
-    const query = q ? { name: { $regex: q, $options: "i" } } : {};
-    const artists = await Artist.find(query);
-
-    if (artists.length === 0) {
-      return res.status(404).json({ error: "Artist not found" });
-    }
-
-    res.status(200).json(artists);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-app.get("/api/albums", async (req, res) => {
-  const q = req.query.q;
-
-  try {
-    const query = q ? { name: { $regex: q, $options: "i" } } : {};
-    const albums = await Albums.find(query);
-
-    if (albums.length === 0) {
-      return res.status(404).json({ error: "Album not found" });
-    }
-
-    res.status(200).json(albums);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-app.get("/api/artist/:id", async (req, res) => {
-  const id = req.params.id;
-
-  try {
-    const artistById = await Artist.find({ id });
-    if (!artistById) {
-      return res.status(404).json({ error: "Artist not found" });
-    }
-    res.status(200).json(artistById[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Admin routes from here
 
 app.get("/admin/artist", (req, res) => {
   res.render("artist");
@@ -127,6 +57,8 @@ app.get("/admin/album-save", (req, res) => {
 app.get("/admin/music-save", (req, res) => {
   res.render("music");
 });
+
+// API ROUTES START HERE
 
 app.get("/api/genres", (req, res) => {
   res.send([
@@ -216,6 +148,117 @@ app.post("/api/album-save", async (req, res) => {
   }
 });
 
+app.post("/api/musics-save", async (req, res) => {
+  const {
+    name,
+    image,
+    url,
+    artist_ids, // Gets array of IDs
+    album_id,
+  } = req.body;
+
+  try {
+    const music = new Music({
+      title:name,
+      coverImage:image,
+      audioUrl:url,
+      artistIds: artist_ids,
+      albumId: album_id,
+    });
+    await music.save();
+
+    // 2. Update Album (IMPORTANT)
+    if (album_id) {
+      await Album.findByIdAndUpdate(
+        album_id,
+        {
+          $addToSet: { songs: music._id }
+        },
+        { new: true }
+      );
+    }
+
+    res.status(201).json(music);
+
+   
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+app.get("/api/musics", async (req, res) => {
+  const q = req.query.query;
+
+  if (q) {
+    try {
+      const music = await Music.findOne({
+        name: { $regex: q, $options: "i" },
+      });
+      if (!music) {
+        return res.status(404).json({ error: "Music not found" });
+      }
+      res.status(200).json([music]);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  try {
+    const musics = await Music.find();
+    res.status(202).json(musics);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/artists", async (req, res) => {
+  const q = req.query.q;
+
+  try {
+    const query = q ? { name: { $regex: q, $options: "i" } } : {};
+    const artists = await Artist.find(query);
+
+    if (artists.length === 0) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+
+    res.status(200).json(artists);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/albums", async (req, res) => {
+  const q = req.query.q;
+
+  try {
+    const query = q ? { name: { $regex: q, $options: "i" } } : {};
+    const albums = await Albums.find(query);
+
+    if (albums.length === 0) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    res.status(200).json(albums);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/artist/:id", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const artistById = await Artist.find({ _id: id });
+    if (!artistById) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+    res.status(200).json(artistById[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
-  console.log("Server is running on port 3001");
+  console.log("Server is running on port http://localhost:3001");
 });
