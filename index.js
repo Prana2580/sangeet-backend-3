@@ -4,6 +4,7 @@ const session = require("express-session");
 const connectDB = require("./config/db");
 const Music = require("./models/Music");
 const Albums = require("./models/Album");
+const getSongInfoFromUrl = require("./config/get-music-info");
 
 const Artist = require("./models/Artist");
 const Album = require("./models/Album");
@@ -61,23 +62,64 @@ app.get("/admin/music-save", (req, res) => {
 // API ROUTES START HERE
 
 app.get("/api/genres", (req, res) => {
+  const q = req.query.find;
+
+  if (q) {
+    const genres = [
+      { id: 1, name: "Pop" },
+      { id: 2, name: "Rock" },
+      { id: 3, name: "Hip-Hop" },
+      { id: 4, name: "Rap" },
+      { id: 5, name: "R&B" },
+      { id: 6, name: "Soul" },
+      { id: 7, name: "Electronic (EDM)" },
+      { id: 8, name: "Country" },
+      { id: 9, name: "Reggae" },
+      { id: 10, name: "Classical" },
+      { id: 11, name: "Jazz" },
+      { id: 12, name: "Latin" },
+      { id: 13, name: "Folk" },
+      { id: 14, name: "Metal" },
+      { id: 15, name: "Gospel" },
+    ];
+
+    const filteredGenres = genres.filter((genre) =>
+      genre.name.toLocaleLowerCase().includes(q.toLocaleLowerCase()),
+    );
+    res.send(filteredGenres);
+    return;
+  }
+
   res.send([
-    "Pop",
-    "Rock",
-    "Hip-Hop",
-    "Rap",
-    "R&B",
-    "Soul",
-    "Electronic (EDM)",
-    "Country",
-    "Reggae",
-    "Classical",
-    "Jazz",
-    "Latin",
-    "Folk",
-    "Metal",
-    "Gospel",
+    { id: 1, name: "Pop" },
+    { id: 2, name: "Rock" },
+    { id: 3, name: "Hip-Hop" },
+    { id: 4, name: "Rap" },
+    { id: 5, name: "R&B" },
+    { id: 6, name: "Soul" },
+    { id: 7, name: "Electronic (EDM)" },
+    { id: 8, name: "Country" },
+    { id: 9, name: "Reggae" },
+    { id: 10, name: "Classical" },
+    { id: 11, name: "Jazz" },
+    { id: 12, name: "Latin" },
+    { id: 13, name: "Folk" },
+    { id: 14, name: "Metal" },
+    { id: 15, name: "Gospel" },
   ]);
+});
+
+app.post("/api/get-song-info", async (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res.status(400).json({ error: "URL is required" });
+  }
+  try {
+    const songInfo = await getSongInfoFromUrl(url);
+    res.status(200).json(songInfo);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/search", async (req, res) => {
@@ -155,15 +197,22 @@ app.post("/api/musics-save", async (req, res) => {
     url,
     artist_ids, // Gets array of IDs
     album_id,
+    genre_ids,
+    duration,
+    releasedDate
   } = req.body;
 
   try {
     const music = new Music({
-      title:name,
-      coverImage:image,
-      audioUrl:url,
-      artistIds: artist_ids,
-      albumId: album_id,
+      title: name,
+      coverImage: image,
+      audioUrl: url,
+      artists: artist_ids,
+      album: album_id,
+      genre: genre_ids,
+      duration: duration,
+      isExplicit: true,
+      releaseDate: releasedDate
     });
     await music.save();
 
@@ -172,15 +221,13 @@ app.post("/api/musics-save", async (req, res) => {
       await Album.findByIdAndUpdate(
         album_id,
         {
-          $addToSet: { songs: music._id }
+          $addToSet: { songs: music._id },
         },
-        { new: true }
+        { new: true },
       );
     }
 
     res.status(201).json(music);
-
-   
   } catch (error) {
     res.json(error);
   }
