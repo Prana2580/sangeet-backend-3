@@ -9,6 +9,7 @@ const cors = require("cors");
 
 const Artist = require("./models/Artist");
 const Album = require("./models/Album");
+const Ashay = require("./models/Ashay");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -64,17 +65,8 @@ app.get("/admin/music-save", (req, res) => {
   res.render("music");
 });
 
-app.get("/api/ashay/musics",(req,res)=>{
-  res.json(
-    [
-      {
-        name:"Apna bana le",
-        coverImge:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTr5u2XhDof4JAFLbuZP7ofY4TVBWDCmMtmlg&s",
-        audioUrl:"https://pagalnew.com/128-downloads/35984",
-        artists:"Sachin-Jigar"
-      }
-    ]
-  );
+app.get("/admin/ashay",(req,res)=>{
+  res.render("ashay")
 })
 
 // API ROUTES START HERE
@@ -323,6 +315,33 @@ app.get("/api/artist/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+app.get("/api/ashay/musics",async(req,res)=>{
+  try {
+    const ashay = await Ashay.find();
+    res.status(202).json(ashay)
+  } catch (error) {
+    res.json(error)
+  }
+})
+
+app.post("/api/ashay/store-song",async (req,res)=>{
+  const {name,artists,audioUrl,coverImage} = req.body;
+
+  try{
+      const ashay = new Ashay({
+      name,
+      coverImage: coverImage,
+      audioUrl: audioUrl,
+      artists: artists,
+     
+    });
+    await ashay.save();
+     res.status(201).json(music);
+  }catch(error){
+    res.json(error)
+  }
+})
 
 app.listen(port, () => {
   console.log("Server is running on port http://localhost:3001");
