@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const Music = require("./models/Music");
 const Albums = require("./models/Album");
 const getSongInfoFromUrl = require("./config/get-music-info");
+const cors = require("cors");
 
 const Artist = require("./models/Artist");
 const Album = require("./models/Album");
@@ -14,7 +15,11 @@ const port = process.env.PORT || 3000;
 require("./config/passport");
 
 connectDB();
-
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://127.0.0.1:5500/"],
+  }),
+);
 app.use(express.json());
 app.set("view engine", "ejs");
 
@@ -199,7 +204,7 @@ app.post("/api/musics-save", async (req, res) => {
     album_id,
     genre_ids,
     duration,
-    releasedDate
+    releasedDate,
   } = req.body;
 
   try {
@@ -212,7 +217,7 @@ app.post("/api/musics-save", async (req, res) => {
       genre: genre_ids,
       duration: duration,
       isExplicit: true,
-      releaseDate: releasedDate
+      releaseDate: releasedDate,
     });
     await music.save();
 
