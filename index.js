@@ -64,6 +64,19 @@ app.get("/admin/music-save", (req, res) => {
   res.render("music");
 });
 
+app.get("/api/ashay/musics",(req,res)=>{
+  res.json(
+    [
+      {
+        name:"Apna bana le",
+        coverImge:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTr5u2XhDof4JAFLbuZP7ofY4TVBWDCmMtmlg&s",
+        audioUrl:"https://pagalnew.com/128-downloads/35984",
+        artists:"Sachin-Jigar"
+      }
+    ]
+  );
+})
+
 // API ROUTES START HERE
 
 app.get("/api/genres", (req, res) => {
