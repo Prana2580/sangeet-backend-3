@@ -18,7 +18,12 @@ require("./config/passport");
 connectDB();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:5500", "https://sangeet-3-backend.onrender.com","https://bloghero.neocities.org"],
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:5500",
+      "https://sangeet-3-backend.onrender.com",
+      "https://bloghero.neocities.org",
+    ],
   }),
 );
 app.use(express.json());
@@ -65,9 +70,9 @@ app.get("/admin/music-save", (req, res) => {
   res.render("music");
 });
 
-app.get("/admin/ashay",(req,res)=>{
-  res.render("ashay")
-})
+app.get("/admin/ashay", (req, res) => {
+  res.render("ashay");
+});
 
 // API ROUTES START HERE
 
@@ -316,32 +321,31 @@ app.get("/api/artist/:id", async (req, res) => {
   }
 });
 
-app.get("/api/ashay/musics",async(req,res)=>{
+app.get("/api/ashay/musics", async (req, res) => {
   try {
     const ashay = await Ashay.find();
-    res.status(202).json(ashay)
+    res.status(202).json(ashay);
   } catch (error) {
-    res.json(error)
+    res.json(error);
   }
-})
+});
 
-app.post("/api/ashay/store-song",async (req,res)=>{
-  const {name,artists,audioUrl,coverImage} = req.body;
+app.post("/api/ashay/store-song", async (req, res) => {
+  const { name, artists, audioUrl, coverImage } = req.body;
 
-  try{
-      const ashay = new Ashay({
+  try {
+    const ashay = new Ashay({
       name,
       coverImage: coverImage,
       audioUrl: audioUrl,
       artists: artists,
-     
     });
     await ashay.save();
-     res.status(201).json(music);
-  }catch(error){
-    res.json(error)
+    res.status(201).json(music);
+  } catch (error) {
+    res.json(error);
   }
-})
+});
 
 app.listen(port, () => {
   console.log("Server is running on port http://localhost:3001");
