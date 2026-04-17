@@ -23,6 +23,7 @@ app.use(
       "http://127.0.0.1:5500",
       "https://sangeet-3-backend.onrender.com",
       "https://bloghero.neocities.org",
+      "https://sangeet-web.vercel.app"
     ],
   }),
 );
