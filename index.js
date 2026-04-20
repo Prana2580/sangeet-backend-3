@@ -24,7 +24,8 @@ app.use(
       "https://sangeet-3-backend.onrender.com",
       "https://bloghero.neocities.org",
       "https://sangeet-web.vercel.app",
-      "https://ashay05.github.io/music-A-H"
+      "https://ashay05.github.io/music-A-H",
+      "https://ashay05.github.io"
     ],
   }),
 );
