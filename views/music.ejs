@@ -430,7 +430,7 @@
         .getElementById("songUrl")
         .addEventListener("change", async function () {
           const url = this.value.trim();
-          if (!url) return;
+          // if (!url) return;
 
           try {
             const res = await fetch("/api/get-song-info", {
