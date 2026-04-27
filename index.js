@@ -66,11 +66,13 @@ app.get("/admin/artist", (req, res) => {
 });
 
 app.get("/admin/album-save", (req, res) => {
+  
   res.render("album");
 });
 
 app.get("/admin/music-save", (req, res) => {
-  res.render("music");
+  res.send("Database is down by owner. Please try again later.");
+  // res.render("music");
 });
 
 app.get("/admin/ashay", (req, res) => {
