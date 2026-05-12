@@ -327,12 +327,13 @@ app.get("/api/artist/:id", async (req, res) => {
 });
 
 app.get("/api/ashay/musics", async (req, res) => {
-  try {
-    const ashay = await Ashay.find();
-    res.status(202).json(ashay);
-  } catch (error) {
-    res.json(error);
-  }
+  res.status(500).send("Service is unavailable. Please try out some time")
+  // try {
+  //   const ashay = await Ashay.find();
+  //   res.status(202).json(ashay);
+  // } catch (error) {
+  //   res.json(error);
+  // }
 });
 
 app.post("/api/ashay/store-song", async (req, res) => {
